@@ -1,0 +1,114 @@
+.categories-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.categories-header {
+    margin-bottom: 2rem;
+}
+
+.categories-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+.categories-subtitle {
+    color: #6b7280;
+    font-size: 1.125rem;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.categories-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+}
+
+.categories-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-4px) scale(1.02);
+}
+
+.categories-card-header {
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.categories-card-blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.categories-card-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.categories-card-green {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.categories-card-red {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.categories-card-yellow {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.categories-card-orange {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.categories-card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.categories-card-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.categories-card-count {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.categories-card-content {
+    padding: 1.5rem;
+}
+
+.categories-card-description {
+    color: #6b7280;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.categories-card-button {
+    width: 100%;
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.categories-card-button:hover {
+    background-color: #e5e7eb;
+}
