@@ -1,94 +1,110 @@
-import './Categories.css';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import NewsCard from '../components/NewsCard';
+import '../css/Categories.css';
 
-interface CategoriesProps {
-    onCategorySelect: (category: string) => void;
-    onNavigate: (tab: string) => void;
+const categories = [
+    { key: 'nation', name: 'Nation' },
+    { key: 'business', name: 'Wirtschaft' },
+    { key: 'sports', name: 'Sport' },
+    { key: 'technology', name: 'Technologie' }
+];
+const maxOptions = [1, 2, 5, 10];
+
+interface Article {
+    title: string;
+    author: string;
+    publishedAt: string;
+    content: string;
+    image: string;
+    url: string;
+    description?: string;
+    source?: { name: string };
 }
 
-const Categories = ({ onCategorySelect, onNavigate }: CategoriesProps) => {
-    const categories = [
-        {
-            key: 'general',
-            name: 'Allgemein',
-            description: 'Aktuelle Nachrichten aus aller Welt',
-            icon: '🌍',
-            color: 'categories-card-blue',
-            articles: '1.2k Artikel'
-        },
-        {
-            key: 'technology',
-            name: 'Technologie',
-            description: 'Neueste Entwicklungen in Tech und Innovation',
-            icon: '💻',
-            color: 'categories-card-purple',
-            articles: '856 Artikel'
-        },
-        {
-            key: 'science',
-            name: 'Wissenschaft',
-            description: 'Forschung und wissenschaftliche Entdeckungen',
-            icon: '🔬',
-            color: 'categories-card-green',
-            articles: '642 Artikel'
-        },
-        {
-            key: 'health',
-            name: 'Gesundheit',
-            description: 'Medizin und Gesundheitsnachrichten',
-            icon: '🏥',
-            color: 'categories-card-red',
-            articles: '423 Artikel'
-        },
-        {
-            key: 'business',
-            name: 'Wirtschaft',
-            description: 'Unternehmen und Finanzmärkte',
-            icon: '💼',
-            color: 'categories-card-yellow',
-            articles: '789 Artikel'
-        },
-        {
-            key: 'sports',
-            name: 'Sport',
-            description: 'Sportnachrichten und Ergebnisse',
-            icon: '⚽',
-            color: 'categories-card-orange',
-            articles: '1.1k Artikel'
-        }
-    ];
+const Categories = () => {
+    const [selectedCategory, setSelectedCategory] = useState('nation');
+    const [selectedMax, setSelectedMax] = useState(5);
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleCategoryClick = (categoryKey: string) => {
-        onCategorySelect(categoryKey);
-        onNavigate('news');
+    useEffect(() => {
+        const fetchNews = async () => {
+            setLoading(true);
+            setError('');
+            try {
+                const response = await axios.get('https://gnews.io/api/v4/top-headlines', {
+                    params: {
+                        topic: selectedCategory,
+                        lang: 'de',
+                        max: selectedMax,
+                        token: '90d89c221142ab8c548888618acaa1e8'
+                    }
+                });
+                setArticles(response.data.articles || []);
+            } catch (err) {
+                setError('Fehler beim Laden der Nachrichten');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchNews();
+    }, [selectedCategory, selectedMax]);
+
+    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCategory(e.target.value);
+    };
+
+    const handleMaxChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedMax(parseInt(e.target.value, 10));
     };
 
     return (
         <div className="categories-container">
             <div className="categories-header">
                 <h1 className="categories-title">Kategorien</h1>
-                <p className="categories-subtitle">Wählen Sie eine Kategorie, um die neuesten Nachrichten zu entdecken.</p>
+                <p className="categories-subtitle">Wählen Sie eine Kategorie und die Anzahl der Artikel.</p>
             </div>
-
-            <div className="categories-grid">
-                {categories.map(category => (
-                    <div
-                        key={category.key}
-                        onClick={() => handleCategoryClick(category.key)}
-                        className="categories-card"
-                    >
-                        <div className={`categories-card-header ${category.color}`}>
-                            <div className="categories-card-icon">{category.icon}</div>
-                            <h3 className="categories-card-name">{category.name}</h3>
-                            <div className="categories-card-count">{category.articles}</div>
-                        </div>
-                        <div className="categories-card-content">
-                            <p className="categories-card-description">{category.description}</p>
-                            <button className="categories-card-button">
-                                Nachrichten anzeigen →
-                            </button>
-                        </div>
+            <div className="categories-dropdowns">
+                <label>
+                    Kategorie:&nbsp;
+                    <select value={selectedCategory} onChange={handleCategoryChange}>
+                        {categories.map(cat => (
+                            <option key={cat.key} value={cat.key}>{cat.name}</option>
+                        ))}
+                    </select>
+                </label>
+                <label>
+                    Anzahl Artikel:&nbsp;
+                    <select value={selectedMax} onChange={handleMaxChange}>
+                        {maxOptions.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                    </select>
+                </label>
+            </div>
+            <div className="categories-news-list">
+                {loading && <div>Lade Nachrichten...</div>}
+                {error && <div>{error}</div>}
+                {!loading && !error && articles.length === 0 && (
+                    <div>Keine Artikel gefunden.</div>
+                )}
+                {!loading && !error && articles.length > 0 && (
+                    <div className="categories-news-grid">
+                        {articles.map((article, idx) => (
+                            <NewsCard
+                                key={idx}
+                                title={article.title}
+                                author={article.source?.name || article.author || ''}
+                                date={article.publishedAt}
+                                content={article.description || article.content || ''}
+                                image={article.image}
+                                url={article.url}
+                            />
+                        ))}
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );
