@@ -1,16 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import NewsCard from '../components/NewsCard';
 import '../css/News.css';
-
-interface Article {
-    title: string;
-    author: string;
-    publishedAt: string;
-    content: string;
-    image: string;
-    url: string;
-}
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from '../contexts/LanguageSelector';
+import useNewsApi from '../hooks/useNewsApi';
+import SearchBar from '../components/SearchFunction';
 
 interface NewsProps {
     selectedCategory: string;
@@ -18,47 +12,33 @@ interface NewsProps {
     onCategoryChange: (category: string) => void;
 }
 
+const categories = [
+    { key: 'general', name: 'Allgemein' },
+    { key: 'business', name: 'Wirtschaft' },
+    { key: 'technology', name: 'Technologie' },
+    { key: 'science', name: 'Wissenschaft' },
+    { key: 'sports', name: 'Sport' },
+    { key: 'health', name: 'Gesundheit' }
+];
+
 const News = ({ selectedCategory, maxArticles = 10, onCategoryChange }: NewsProps) => {
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string>('');
+    const { t, getApiLanguage } = useLanguage();
     const [showScrollTop, setShowScrollTop] = useState(false);
     const topRef = useRef<HTMLDivElement>(null);
 
-    const categories = [
-        { key: 'general', name: 'Allgemein' },
-        { key: 'technology', name: 'Technologie' },
-        { key: 'science', name: 'Wissenschaft' },
-        { key: 'health', name: 'Gesundheit' },
-        { key: 'business', name: 'Wirtschaft' },
-        { key: 'sports', name: 'Sport' }
-    ];
+    const { articles, loading } = useNewsApi({
+        topic: selectedCategory,
+        lang: getApiLanguage(),
+        max: maxArticles
+    });
 
-    useEffect(() => {
-        const fetchNews = async () => {
-            setLoading(true);
-            setError('');
-            try {
-                const response = await axios.get('https://gnews.io/api/v4/top-headlines', {
-                    params: {
-                        topic: selectedCategory,
-                        lang: 'de',
-                        max: maxArticles,
-                        token: '90d89c221142ab8c548888618acaa1e8'
-                    }
-                });
-                // Die API liefert ein Feld "articles"
-                setArticles(response.data.articles || []);
-            } catch (err) {
-                setError('Fehler beim Laden der Nachrichten');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const [searchQuery, setSearchQuery] = useState("");
 
-        fetchNews();
-    }, [selectedCategory, maxArticles]);
+    const filteredArticles = articles.filter(article =>
+        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     useEffect(() => {
         const handleScroll = () => {
@@ -80,28 +60,10 @@ const News = ({ selectedCategory, maxArticles = 10, onCategoryChange }: NewsProp
         return (
             <div className="news-container">
                 <div ref={topRef}></div>
+                <LanguageSelector />
                 <div className="news-loading">
                     <div className="news-spinner"></div>
-                    <span className="news-loading-text">Nachrichten werden geladen...</span>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="news-container">
-                <div ref={topRef}></div>
-                <div className="news-error">
-                    <div className="news-error-content">
-                        <div className="news-error-icon">
-                            <span>⚠️</span>
-                        </div>
-                        <div className="news-error-message">
-                            <strong>Fehler:</strong>
-                            <span> {error}</span>
-                        </div>
-                    </div>
+                    <span className="news-loading-text">{t('news.loading')}</span>
                 </div>
             </div>
         );
@@ -112,9 +74,13 @@ const News = ({ selectedCategory, maxArticles = 10, onCategoryChange }: NewsProp
     return (
         <div className="news-container">
             <div ref={topRef}></div>
+            <LanguageSelector />
             <div className="news-header">
-                <h1 className="news-title">Aktuelle Nachrichten</h1>
-
+                <h1 className="news-title">{t('news.title')}</h1>
+                <SearchBar
+                    onSearch={setSearchQuery}
+                    placeholder={"Artikel suchen..."}
+                />
                 <div className="news-category-section">
                     <h2 className="news-category-title">Kategorie: {currentCategory}</h2>
                     <div className="news-category-buttons">
@@ -133,14 +99,16 @@ const News = ({ selectedCategory, maxArticles = 10, onCategoryChange }: NewsProp
                 </div>
             </div>
 
-            {articles.length === 0 ? (
+            {filteredArticles.length === 0 ? (
                 <div className="news-empty">
                     <div className="news-empty-icon">📰</div>
-                    <p className="news-empty-text">Keine Artikel in dieser Kategorie verfügbar.</p>
+                    <p className="news-empty-text">
+                        {searchQuery ? t('news.noSearchResults') : t('news.noArticles')}
+                    </p>
                 </div>
             ) : (
                 <div className="news-grid">
-                    {articles.map((article, index) => (
+                    {filteredArticles.map((article, index) => (
                         <NewsCard
                             key={index}
                             title={article.title}
@@ -153,11 +121,12 @@ const News = ({ selectedCategory, maxArticles = 10, onCategoryChange }: NewsProp
                     ))}
                 </div>
             )}
+
             {showScrollTop && (
                 <button
                     className="scroll-to-top-btn"
                     onClick={scrollToTop}
-                    aria-label="Nach oben scrollen"
+                    aria-label={t('news.scrollToTop')}
                 >
                     ↑
                 </button>
@@ -167,4 +136,3 @@ const News = ({ selectedCategory, maxArticles = 10, onCategoryChange }: NewsProp
 };
 
 export default News;
-

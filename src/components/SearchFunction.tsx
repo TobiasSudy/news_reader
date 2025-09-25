@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { FaSearch, FaTimes } from "react-icons/fa";
-import "./SearchBar.css";
+import "../css/SearchFunction.css";
 
 interface SearchBarProps {
     onSearch: (text: string) => void;
-    onClear: () => void;
+    placeholder?: string;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, placeholder = "Artikel suchen..." }) => {
     const [searchText, setSearchText] = useState("");
 
     const handleSearch = (text: string) => {
@@ -17,7 +17,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
 
     const handleClear = () => {
         setSearchText("");
-        onClear();
+        onSearch("");
     };
 
     return (
@@ -26,7 +26,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
             <input
                 type="text"
                 className="search-input"
-                placeholder="Suchen nach Name, E-Mail, Tel, Bemerkung..."
+                placeholder={placeholder}
                 value={searchText}
                 onChange={(e) => handleSearch(e.target.value)}
             />

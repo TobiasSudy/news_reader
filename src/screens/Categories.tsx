@@ -1,59 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState} from 'react';
 import NewsCard from '../components/NewsCard';
 import '../css/Categories.css';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from '../contexts/LanguageSelector';
+import useNewsApi from '../hooks/useNewsApi';
 
 const categories = [
-    { key: 'nation', name: 'Nation' },
-    { key: 'business', name: 'Wirtschaft' },
-    { key: 'sports', name: 'Sport' },
-    { key: 'technology', name: 'Technologie' }
+    { key: 'nation', name: 'category.nation' },
+    { key: 'business', name: 'category.business' },
+    { key: 'sports', name: 'category.sports' },
+    { key: 'technology', name: 'category.technology' }
 ];
 const maxOptions = [1, 2, 5, 10];
-
-interface Article {
-    title: string;
-    author: string;
-    publishedAt: string;
-    content: string;
-    image: string;
-    url: string;
-    description?: string;
-    source?: { name: string };
+interface CategoriesProps {
+    onCategorySelect?: (category: string) => void;
+    onNavigate?: (tab: string) => void;
 }
 
-const Categories = () => {
+const Categories: React.FC<CategoriesProps> = ({ onCategorySelect}) => {
+    const { t, getApiLanguage } = useLanguage();
     const [selectedCategory, setSelectedCategory] = useState('nation');
     const [selectedMax, setSelectedMax] = useState(5);
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchNews = async () => {
-            setLoading(true);
-            setError('');
-            try {
-                const response = await axios.get('https://gnews.io/api/v4/top-headlines', {
-                    params: {
-                        topic: selectedCategory,
-                        lang: 'de',
-                        max: selectedMax,
-                        token: '90d89c221142ab8c548888618acaa1e8'
-                    }
-                });
-                setArticles(response.data.articles || []);
-            } catch (err) {
-                setError('Fehler beim Laden der Nachrichten');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchNews();
-    }, [selectedCategory, selectedMax]);
+    const { articles, loading, error } = useNewsApi({
+        topic: selectedCategory,
+        lang: getApiLanguage(),
+        max: selectedMax
+    });
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedCategory(e.target.value);
+        const newCategory = e.target.value;
+        setSelectedCategory(newCategory);
+
+        // Call the prop function if provided
+        if (onCategorySelect) {
+            onCategorySelect(newCategory);
+        }
     };
 
     const handleMaxChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -62,21 +44,22 @@ const Categories = () => {
 
     return (
         <div className="categories-container">
+            <LanguageSelector />
             <div className="categories-header">
-                <h1 className="categories-title">Kategorien</h1>
-                <p className="categories-subtitle">Wählen Sie eine Kategorie und die Anzahl der Artikel.</p>
+                <h1 className="categories-title">{t('categories.title')}</h1>
+                <p className="categories-subtitle">{t('categories.subtitle')}</p>
             </div>
             <div className="categories-dropdowns">
                 <label>
-                    Kategorie:&nbsp;
+                    {t('categories.categoryLabel')}:&nbsp;
                     <select value={selectedCategory} onChange={handleCategoryChange}>
                         {categories.map(cat => (
-                            <option key={cat.key} value={cat.key}>{cat.name}</option>
+                            <option key={cat.key} value={cat.key}>{t(cat.name)}</option>
                         ))}
                     </select>
                 </label>
                 <label>
-                    Anzahl Artikel:&nbsp;
+                    {t('categories.maxLabel')}:&nbsp;
                     <select value={selectedMax} onChange={handleMaxChange}>
                         {maxOptions.map(opt => (
                             <option key={opt} value={opt}>{opt}</option>
@@ -85,10 +68,10 @@ const Categories = () => {
                 </label>
             </div>
             <div className="categories-news-list">
-                {loading && <div>Lade Nachrichten...</div>}
+                {loading && <div>{t('categories.loading')}</div>}
                 {error && <div>{error}</div>}
                 {!loading && !error && articles.length === 0 && (
-                    <div>Keine Artikel gefunden.</div>
+                    <div>{t('categories.noArticles')}</div>
                 )}
                 {!loading && !error && articles.length > 0 && (
                     <div className="categories-news-grid">
