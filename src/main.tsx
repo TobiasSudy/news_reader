@@ -7,7 +7,7 @@ import {LanguageProvider} from "./contexts/LanguageContext.tsx";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-      <BrowserRouter>
+      <BrowserRouter basename={"/sudy/news-app/"}>
           <LanguageProvider>
               <App />
           </LanguageProvider>
